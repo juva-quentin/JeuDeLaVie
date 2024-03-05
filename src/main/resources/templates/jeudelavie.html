@@ -16,30 +16,27 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            text-align: center;
         }
-        h1 {
-            color: #333;
+        .controls, #chat-container {
+            margin-top: 5px;
         }
-        .controls {
-            margin-bottom: 20px; /* Espacement entre les boutons et la grille */
+        #chat-messages {
+            height: 150px;
+            width: 300px;
+            overflow-y: scroll;
+            background: #EFEFEF;
+            padding: 5px;
+            margin-bottom: 5px;
         }
-        button {
-            margin: 0 10px; /* Espacement entre les boutons */
-            padding: 10px 20px;
-            border: none;
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #45a049;
+        #chat-input {
+            margin-right: 5px;
         }
         #plateau {
             display: grid;
-            grid-template-columns: repeat(10, 20px); /* Adaptez ceci en fonction de la taille de votre jeu */
+            grid-template-columns: repeat(10, 20px);
             gap: 2px;
+            margin-top: 15px;
         }
         .cellule {
             width: 20px;
@@ -49,10 +46,22 @@
             transition: background-color 0.5s;
         }
         .vivante {
-            background-color: #76b947; /* Vert pour les cellules vivantes */
+            background-color: #76b947;
         }
         .cellule:not(.vivante) {
-            background-color: #eeeeee; /* Gris clair pour les cellules mortes */
+            background-color: #eeeeee;
+        }
+        button, #send-message {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:hover, #send-message:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
@@ -66,13 +75,32 @@
         <button id="reinitialiser">Réinitialiser le Jeu</button>
     </div>
     <div id="plateau"></div>
+    <div id="chat-container">
+        <div id="chat-messages"></div>
+        <input id="chat-input" type="text" placeholder="Proposer des règles ou discuter...">
+        <button id="send-message">Envoyer</button>
+    </div>
+    <p>Comment proposer des règles :</p>
+    <ul>
+        <li>Pour proposer des règles, tapez dans le chat : <code>/proposeRules survive [nombre de voisins pour survivre] birth [nombre de voisins pour naître]</code></li>
+        <li>Exemple : <code>/proposeRules survive 2 3 birth 3</code></li>
+        <li>Pour approuver les règles proposées, tapez : <code>/approveRules</code></li>
+    </ul>
+
 </div>
 
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var username = /*[[${username}]]*/ 'Nom d\'utilisateur';
+    /*]]>*/
+</script>
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 <script>
     var stompClient = null;
     var plateauElement = document.getElementById('plateau');
+    var messageInput = document.getElementById('chat-input');
+    var messagesContainer = document.getElementById('chat-messages');
 
     function connect() {
         var socket = new SockJS('/ws');
@@ -81,17 +109,17 @@
         stompClient.connect({}, function(frame) {
             console.log('Connecté à WebSocket:', frame);
             stompClient.subscribe('/topic/jeu', function(message) {
-                console.log('Message reçu du serveur:', message.body);
                 var plateau = JSON.parse(message.body);
                 afficherPlateau(plateau);
             });
-        }, function(error) {
-            console.log('Erreur de connexion WebSocket:', error);
+            stompClient.subscribe('/topic/chat', function(message) {
+                var chatMessage = JSON.parse(message.body);
+                displayMessage(chatMessage);
+            });
         });
     }
 
     function afficherPlateau(plateau) {
-        console.log('Mise à jour du plateau...');
         plateauElement.innerHTML = '';
         for (var i = 0; i < plateau.length; i++) {
             for (var j = 0; j < plateau[i].length; j++) {
@@ -102,24 +130,38 @@
         }
     }
 
+    function sendMessage() {
+        var messageContent = messageInput.value.trim();
+        if (messageContent && stompClient) {
+            var chatMessage = { sender: username, type: 'CHAT', content: messageContent };
+            stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
+            messageInput.value = '';
+        }
+    }
+
+    document.getElementById('send-message').addEventListener('click', sendMessage);
+
+    function displayMessage(message) {
+        var messageElement = document.createElement('div');
+        messageElement.innerText = message.sender + ": " + message.content;
+        messagesContainer.appendChild(messageElement);
+    }
+
     document.getElementById('demarrer').addEventListener('click', function() {
-        console.log('Demande de démarrage du jeu...');
         if (stompClient) {
-            stompClient.send("/app/demarrer", {}, "");
+            stompClient.send("/app/demarrer", {}, "{}");
         }
     });
 
     document.getElementById('stopper').addEventListener('click', function() {
-        console.log('Demande d\'arrêt du jeu...');
         if (stompClient) {
-            stompClient.send("/app/stopper", {}, "");
+            stompClient.send("/app/stopper", {}, "{}");
         }
     });
 
     document.getElementById('reinitialiser').addEventListener('click', function() {
-        console.log('Demande de réinitialisation du jeu...');
         if (stompClient) {
-            stompClient.send("/app/reinitialiser", {}, "");
+            stompClient.send("/app/reinitialiser", {}, "{}");
         }
     });
 
