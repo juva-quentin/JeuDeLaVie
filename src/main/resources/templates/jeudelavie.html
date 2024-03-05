@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Jeu de la Vie</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #333;
+        }
+        .controls {
+            margin-bottom: 20px; /* Espacement entre les boutons et la grille */
+        }
+        button {
+            margin: 0 10px; /* Espacement entre les boutons */
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #plateau {
+            display: grid;
+            grid-template-columns: repeat(10, 20px); /* Adaptez ceci en fonction de la taille de votre jeu */
+            gap: 2px;
+        }
+        .cellule {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            border-radius: 4px;
+            transition: background-color 0.5s;
+        }
+        .vivante {
+            background-color: #76b947; /* Vert pour les cellules vivantes */
+        }
+        .cellule:not(.vivante) {
+            background-color: #eeeeee; /* Gris clair pour les cellules mortes */
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <h1>Jeu de la Vie</h1>
+    <div>Bonjour, <span th:text="${username}">Nom d'utilisateur</span>!</div>
+    <div class="controls">
+        <button id="demarrer">Démarrer le Jeu</button>
+        <button id="stopper">Arrêter le Jeu</button>
+        <button id="reinitialiser">Réinitialiser le Jeu</button>
+    </div>
+    <div id="plateau"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+<script>
+    var stompClient = null;
+    var plateauElement = document.getElementById('plateau');
+
+    function connect() {
+        var socket = new SockJS('/ws');
+        console.log('Tentative de connexion WebSocket...');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function(frame) {
+            console.log('Connecté à WebSocket:', frame);
+            stompClient.subscribe('/topic/jeu', function(message) {
+                console.log('Message reçu du serveur:', message.body);
+                var plateau = JSON.parse(message.body);
+                afficherPlateau(plateau);
+            });
+        }, function(error) {
+            console.log('Erreur de connexion WebSocket:', error);
+        });
+    }
+
+    function afficherPlateau(plateau) {
+        console.log('Mise à jour du plateau...');
+        plateauElement.innerHTML = '';
+        for (var i = 0; i < plateau.length; i++) {
+            for (var j = 0; j < plateau[i].length; j++) {
+                var cell = document.createElement('div');
+                cell.className = 'cellule' + (plateau[i][j] ? ' vivante' : '');
+                plateauElement.appendChild(cell);
+            }
+        }
+    }
+
+    document.getElementById('demarrer').addEventListener('click', function() {
+        console.log('Demande de démarrage du jeu...');
+        if (stompClient) {
+            stompClient.send("/app/demarrer", {}, "");
+        }
+    });
+
+    document.getElementById('stopper').addEventListener('click', function() {
+        console.log('Demande d\'arrêt du jeu...');
+        if (stompClient) {
+            stompClient.send("/app/stopper", {}, "");
+        }
+    });
+
+    document.getElementById('reinitialiser').addEventListener('click', function() {
+        console.log('Demande de réinitialisation du jeu...');
+        if (stompClient) {
+            stompClient.send("/app/reinitialiser", {}, "");
+        }
+    });
+
+    connect();
+</script>
+</body>
+</html>
