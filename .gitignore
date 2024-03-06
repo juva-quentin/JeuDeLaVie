@@ -33,6 +33,7 @@ build/
 .vscode/
 
 
-### Docker ###
+### Docker - jenkins ###
 /docker/
 docker-compose.yml
+/jenkins_configuration/
