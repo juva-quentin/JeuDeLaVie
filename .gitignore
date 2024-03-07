@@ -41,3 +41,5 @@ docker-compose.yml
 jenkins_configuration/
 docker/
 /docker
+docker
+jenkins_configuration
