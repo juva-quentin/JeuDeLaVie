@@ -1,5 +1,6 @@
 package org.quentin.gameoflife.service;
 
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,14 +13,19 @@ import java.util.Set;
 
 @Service
 public class JeuDeLaVieService {
+
+    @Getter
     private boolean[][] plateau;
     private final int taille = 10;
     private volatile boolean enCours = false;
     private Thread threadJeu;
 
     // Règles personnalisables pour la survie et la naissance
+    @Getter
     private Set<Integer> reglesSurvie = new HashSet<>(Arrays.asList(2, 3));
+    @Getter
     private Set<Integer> reglesNaissance = new HashSet<>(Arrays.asList(3));
+
 
     private static final Logger logger = LoggerFactory.getLogger(JeuDeLaVieService.class);
 
