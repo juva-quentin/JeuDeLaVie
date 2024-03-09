@@ -3,10 +3,10 @@ name: CI Pipeline
 on:
   push:
     branches:
-      - main  # Déclenche le pipeline lorsque des modifications sont poussées sur la branche principale
+      - main
   pull_request:
     branches:
-      - main  # Déclenche le pipeline pour les pull requests sur la branche principale
+      - main
 
 jobs:
   build:
@@ -31,4 +31,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: java-app
-          path: target/*.jar  # Ajoutez ici le chemin des fichiers à archiver, par exemple le jar de votre application
+          path: target/*.jar
