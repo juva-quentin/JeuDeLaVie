@@ -14,12 +14,7 @@ pipeline {
         }
 
         stage('Test') {
-            when {
-                anyOf {
-                    branch 'develop'
-                    branch 'main'
-                }
-            }
+
             steps {
                 script {
                     // Lance les tests avec Maven
@@ -36,9 +31,7 @@ pipeline {
         }
 
         stage('Build and Deploy') {
-            when {
-                branch 'main'
-            }
+
             steps {
                 script {
                     // Construit l'application avec Maven
