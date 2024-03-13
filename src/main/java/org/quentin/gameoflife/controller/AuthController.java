@@ -1,7 +1,7 @@
 package org.quentin.gameoflife.controller;
 
 import jakarta.servlet.http.HttpSession;
-import org.quentin.gameoflife.repository.UtilisateurRepository;
+import org.quentin.gameoflife.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,16 +16,16 @@ public class AuthController {
     private AuthenticationService authenticationService;
 
     @Autowired
-    private UtilisateurRepository utilisateurRepository;
+    private UserRepository userRepository;
 
     @GetMapping("/")
     public String index(HttpSession session) {
-        // Vérifier si un utilisateur est connecté
+
         if (session.getAttribute("currentUser") != null) {
-            // Rediriger vers la page du jeu de la vie si un utilisateur est connecté
+
             return "redirect:/jeudelavie";
         } else {
-            // Rediriger vers la page de connexion si aucun utilisateur n'est connecté
+
             return "redirect:/connexion";
         }
     }
@@ -39,9 +39,9 @@ public class AuthController {
     public String loginSubmit(HttpSession session, @RequestParam String username, @RequestParam String password) {
         boolean isAuthenticated = authenticationService.authenticate(session, username, password);
         if (isAuthenticated) {
-            return "redirect:/jeudelavie"; // Assurez-vous que ce chemin est correct et mène à la page souhaitée après la connexion
+            return "redirect:/jeudelavie";
         } else {
-            return "redirect:/connexion?error=true"; // Ajoutez un paramètre de requête pour indiquer une erreur de connexion
+            return "redirect:/connexion?error=true";
         }
     }
 
@@ -60,9 +60,9 @@ public class AuthController {
     public String register(@RequestParam String username, @RequestParam String password, HttpSession session) {
         try {
             authenticationService.register(username, password);
-            return "redirect:/connexion"; // Redirige vers la page de connexion après l'inscription réussie
+            return "redirect:/connexion";
         } catch (IllegalStateException e) {
-            return "redirect:/inscription?error=Nom d'utilisateur déjà pris"; // Informe l'utilisateur de l'erreur
+            return "redirect:/inscription?error=Nom d'utilisateur déjà pris";
         }
     }
 

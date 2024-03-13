@@ -34,20 +34,20 @@ public class GameController {
     @MessageMapping("/demarrer")
     public void demarrerJeuWebSocket() {
         logger.info("Le démarrage du jeu a été demandé.");
-        jeuDeLaVieService.demarrerJeu();
+        jeuDeLaVieService.startGame();
     }
 
     @MessageMapping("/stopper")
     public void stopperJeuWebSocket() {
         logger.info("Arrêt du jeu demandé via WebSocket.");
-        jeuDeLaVieService.stopperJeu();
+        jeuDeLaVieService.stopGame();
     }
 
     @MessageMapping("/reinitialiser")
     public void reinitialiserJeuWebSocket() {
         logger.info("Réinitialisation du jeu demandée via WebSocket.");
-        jeuDeLaVieService.initialiserJeu();
+        jeuDeLaVieService.initGame();
         logger.info("Redémarrage du jeu après réinitialisation.");
-        jeuDeLaVieService.demarrerJeu();
+        jeuDeLaVieService.startGame();
     }
 }

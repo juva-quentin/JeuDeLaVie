@@ -25,12 +25,12 @@ class JeuDeLaVieServiceTest {
     @BeforeEach
     void setUp() {
         initMocks(this);
-        jeuDeLaVieService.initialiserJeu(); // Assurez-vous d'initialiser le jeu pour chaque test
+        jeuDeLaVieService.initGame(); 
     }
 
     @Test
     void whenGameStarts_thenGridShouldNotBeEmpty() {
-        jeuDeLaVieService.demarrerJeu();
+        jeuDeLaVieService.startGame();
         assertFalse(isGridEmpty(jeuDeLaVieService.getPlateau()), "La grille ne devrait pas être vide après le démarrage du jeu.");
     }
 
@@ -49,9 +49,9 @@ class JeuDeLaVieServiceTest {
     private boolean isGridEmpty(boolean[][] grid) {
         for (boolean[] row : grid) {
             for (boolean cell : row) {
-                if (cell) return false; // Si une cellule est vivante, la grille n'est pas vide
+                if (cell) return false;
             }
         }
-        return true; // Si aucune cellule vivante n'est trouvée, la grille est vide
+        return true;
     }
 }

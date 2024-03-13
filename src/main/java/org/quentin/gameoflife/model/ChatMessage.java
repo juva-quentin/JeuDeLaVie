@@ -14,7 +14,7 @@ public class ChatMessage {
         this.sender = sender;
     }
 
-    // Ce constructeur surcharge ChatMessage pour accepter le type en tant que String
+
     public ChatMessage(String type, String content, String sender) {
         this.type = MessageType.valueOf(type);
         this.content = content;
