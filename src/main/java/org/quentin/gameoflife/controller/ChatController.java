@@ -23,7 +23,6 @@ public class ChatController {
     @Autowired
     private SimpMessagingTemplate template;
 
-    // Ces sets contiennent les règles proposées actuellement en attente d'approbation
     private Set<Integer> proposedSurviveRules = new HashSet<>();
     private Set<Integer> proposedBirthRules = new HashSet<>();
 
@@ -41,7 +40,7 @@ public class ChatController {
     }
 
     private void handleRuleProposal(String proposal) {
-        // Extrait les règles des propositions
+
         String[] parts = proposal.split(" ");
         proposedSurviveRules.clear();
         proposedBirthRules.clear();

@@ -16,11 +16,10 @@ public class JeuDeLaVieService {
 
     @Getter
     private boolean[][] plateau;
-    private final int taille = 10;
-    private volatile boolean enCours = false;
-    private Thread threadJeu;
+    private final int size = 10;
+    private volatile boolean running = false;
+    private Thread gameThread;
 
-    // Règles personnalisables pour la survie et la naissance
     @Getter
     private Set<Integer> reglesSurvie = new HashSet<>(Arrays.asList(2, 3));
     @Getter
@@ -33,31 +32,31 @@ public class JeuDeLaVieService {
     private SimpMessagingTemplate template;
 
     public JeuDeLaVieService() {
-        this.plateau = new boolean[taille][taille];
-        initialiserJeu();
+        this.plateau = new boolean[size][size];
+        initGame();
     }
 
-    public synchronized void initialiserJeu() {
-        if (enCours) {
-            stopperJeu();
+    public synchronized void initGame() {
+        if (running) {
+            stopGame();
         }
         Random rand = new Random();
-        for (int i = 0; i < taille; i++) {
-            for (int j = 0; j < taille; j++) {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
                 plateau[i][j] = rand.nextBoolean();
             }
         }
-        logger.info("Jeu initialisé avec un plateau de taille {}x{}", taille, taille);
+        logger.info("Jeu initialisé avec un plateau de size {}x{}", size, size);
     }
 
-    private int compterVoisinsVivants(int x, int y) {
+    private int counteInLife(int x, int y) {
         int count = 0;
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
                 if (i == 0 && j == 0) continue;
                 int dx = x + i;
                 int dy = y + j;
-                if (dx >= 0 && dx < taille && dy >= 0 && dy < taille && plateau[dx][dy]) {
+                if (dx >= 0 && dx < size && dy >= 0 && dy < size && plateau[dx][dy]) {
                     count++;
                 }
             }
@@ -65,12 +64,12 @@ public class JeuDeLaVieService {
         return count;
     }
 
-    public synchronized void calculerEtatSuivant() {
-        if (!enCours) return;
-        boolean[][] nouveauPlateau = new boolean[taille][taille];
-        for (int i = 0; i < taille; i++) {
-            for (int j = 0; j < taille; j++) {
-                int voisinsVivants = compterVoisinsVivants(i, j);
+    public synchronized void countNextState() {
+        if (!running) return;
+        boolean[][] nouveauPlateau = new boolean[size][size];
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                int voisinsVivants = counteInLife(i, j);
                 if(plateau[i][j]) {
                     nouveauPlateau[i][j] = reglesSurvie.contains(voisinsVivants);
                 } else {
@@ -81,16 +80,15 @@ public class JeuDeLaVieService {
 
         plateau = nouveauPlateau;
 
-        if (estPlateauStableOuMort()) {
-            stopperJeu();
+        if (stableOrDead()) {
+            stopGame();
             return;
         }
 
         template.convertAndSend("/topic/jeu", this.plateau);
     }
 
-    private boolean estPlateauStableOuMort() {
-        // Logique pour vérifier si le plateau est stable ou toutes les cellules sont mortes
+    private boolean stableOrDead() {
         for (boolean[] ligne : plateau) {
             for (boolean cellule : ligne) {
                 if (cellule) {
@@ -101,15 +99,15 @@ public class JeuDeLaVieService {
         return true;
     }
 
-    public void demarrerJeu() {
-        if (enCours) {
+    public void startGame() {
+        if (running) {
             logger.info("Le jeu est déjà en cours.");
             return;
         }
-        enCours = true;
-        threadJeu = new Thread(() -> {
-            while (enCours) {
-                calculerEtatSuivant();
+        running = true;
+        gameThread = new Thread(() -> {
+            while (running) {
+                countNextState();
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -118,13 +116,13 @@ public class JeuDeLaVieService {
                 }
             }
         });
-        threadJeu.start();
+        gameThread.start();
     }
 
-    public synchronized void stopperJeu() {
-        enCours = false;
-        if (threadJeu != null) {
-            threadJeu.interrupt();
+    public synchronized void stopGame() {
+        running = false;
+        if (gameThread != null) {
+            gameThread.interrupt();
         }
     }
 

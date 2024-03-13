@@ -1,8 +1,8 @@
 package org.quentin.gameoflife.service;
 
 import jakarta.servlet.http.HttpSession;
-import org.quentin.gameoflife.model.Utilisateur;
-import org.quentin.gameoflife.repository.UtilisateurRepository;
+import org.quentin.gameoflife.model.User;
+import org.quentin.gameoflife.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 public class AuthenticationService {
 
     @Autowired
-    private UtilisateurRepository utilisateurRepository;
+    private UserRepository userRepository;
 
     public boolean authenticate(HttpSession session, String username, String password) {
-        Utilisateur utilisateur = utilisateurRepository.findByUsername(username).orElse(null);
+        User utilisateur = userRepository.findByUsername(username).orElse(null);
         if (utilisateur != null && utilisateur.verifyPassword(password)) {
             session.setAttribute("currentUser", utilisateur.getUsername()); // Store username in session
             return true;
@@ -26,12 +26,12 @@ public class AuthenticationService {
         session.invalidate();
     }
 
-    public Utilisateur register(String username, String password) {
-        if (utilisateurRepository.findByUsername(username).isPresent()) {
+    public User register(String username, String password) {
+        if (userRepository.findByUsername(username).isPresent()) {
             throw new IllegalStateException("Nom d'utilisateur déjà pris");
         }
 
-        Utilisateur newUtilisateur = new Utilisateur(username, password);
-        return utilisateurRepository.save(newUtilisateur);
+        User newUtilisateur = new User(username, password);
+        return userRepository.save(newUtilisateur);
     }
 }

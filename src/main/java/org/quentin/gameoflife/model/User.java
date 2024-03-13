@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import org.mindrot.jbcrypt.BCrypt;
 
 @Entity
-public class Utilisateur {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -13,10 +13,10 @@ public class Utilisateur {
 
     private String password;
 
-    public Utilisateur() {
+    public User() {
     }
 
-    public Utilisateur(String username, String password) {
+    public User(String username, String password) {
         this.username = username;
         this.password = BCrypt.hashpw(password, BCrypt.gensalt());
     }
